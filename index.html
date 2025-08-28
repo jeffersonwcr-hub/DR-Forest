@@ -11,22 +11,28 @@
       background: #f9f9f9;
       color: #333;
     }
+
     header {
       background: #2d89ef;
       color: white;
       padding: 20px;
       text-align: center;
     }
-    h1 { margin: 0; font-size: 22px; }
-    
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
     .menu {
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 10px;
       background: #eee;
       padding: 10px;
-      flex-wrap: wrap;
     }
+
     .menu button {
       background: #2d89ef;
       color: white;
@@ -36,33 +42,33 @@
       cursor: pointer;
       transition: background 0.3s;
     }
+
     .menu button:hover {
       background: #1b5fa7;
     }
+
     .menu button.active {
       background: #1b5fa7;
       font-weight: bold;
     }
 
-    .tabla-contenedor {
+    .iframe-container {
       display: none;
-      padding: 20px;
-    }
-    table {
-      border-collapse: collapse;
       width: 100%;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      height: 85vh;
+      border: none;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
-    th {
-      background: #f4f4f4;
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -75,75 +81,66 @@
   <div id="contenedor"></div>
 
   <script>
-    // ✅ Configuración de pestañas (nombres exactos)
     const hojas = [
-      { nombre: "DEFECTOS SEMANALES", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=DEFECTOS%20SEMANALES" },
-      { nombre: "TABLA DE TIEMPOS", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20DE%20TIEMPOS" },
-      { nombre: "TABLA NO ESCANEABLE", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20NO%20ESCANEABLE" },
-      { nombre: "TABLA SO", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20SO" }
+      {
+        nombre: "DEFECTOS SEMANALES",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3A2UTC1LmqZC707UAcYlsiMqMC_tJ3S0S5zmdPnuoIeQHqakUqx5sdp7zzGXU0g/pubhtml?gid=197071371&single=true"
+      },
+      {
+        nombre: "TABLA DE TIEMPOS",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3A2UTC1LmqZC707UAcYlsiMqMC_tJ3S0S5zmdPnuoIeQHqakUqx5sdp7zzGXU0g/pubhtml?gid=1387365296&single=true"
+      },
+      {
+        nombre: "TABLA NO ESCANEABLE",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3A2UTC1LmqZC707UAcYlsiMqMC_tJ3S0S5zmdPnuoIeQHqakUqx5sdp7zzGXU0g/pubhtml?gid=701159647&single=true"
+      },
+      {
+        nombre: "TABLA SO",
+        url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3A2UTC1LmqZC707UAcYlsiMqMC_tJ3S0S5zmdPnuoIeQHqakUqx5sdp7zzGXU0g/pubhtml?gid=1003439835&single=true"
+      }
     ];
 
     const menu = document.getElementById("menu");
-    const cont = document.getElementById("contenedor");
+    const contenedor = document.getElementById("contenedor");
 
-    // Crear botones y contenedores
     hojas.forEach((hoja, index) => {
+      // Crear botón
       const btn = document.createElement("button");
       btn.textContent = hoja.nombre;
       btn.onclick = () => mostrarHoja(index);
       menu.appendChild(btn);
 
-      const div = document.createElement("div");
-      div.id = "hoja-" + index;
-      div.classList.add("tabla-contenedor");
-      cont.appendChild(div);
+      // Crear iframe
+      const iframeDiv = document.createElement("div");
+      iframeDiv.className = "iframe-container";
+      iframeDiv.id = "iframe-" + index;
 
-      cargarHoja(hoja, div.id);
+      const iframe = document.createElement("iframe");
+      iframe.src = hoja.url;
+
+      iframe.onerror = () => {
+        const error = document.createElement("p");
+        error.className = "error";
+        error.textContent = `⚠️ No se pudo cargar la hoja: ${hoja.nombre}`;
+        iframeDiv.innerHTML = '';
+        iframeDiv.appendChild(error);
+      };
+
+      iframeDiv.appendChild(iframe);
+      contenedor.appendChild(iframeDiv);
     });
 
-    // Mostrar hoja activa
     function mostrarHoja(index) {
-      document.querySelectorAll(".tabla-contenedor").forEach(div => div.style.display = "none");
+      // Ocultar todos
+      document.querySelectorAll(".iframe-container").forEach(div => div.style.display = "none");
       document.querySelectorAll(".menu button").forEach(btn => btn.classList.remove("active"));
 
-      document.getElementById("hoja-" + index).style.display = "block";
+      // Mostrar actual
+      document.getElementById("iframe-" + index).style.display = "block";
       menu.children[index].classList.add("active");
     }
 
-    // Cargar datos de Google Sheets
-    async function cargarHoja(hoja, contenedorId) {
-      try {
-        const res = await fetch(hoja.url);
-        const texto = await res.text();
-
-        // Google envuelve el JSON en una función, hay que recortar
-        const json = JSON.parse(texto.substring(47, texto.length - 2));
-
-        const div = document.getElementById(contenedorId);
-        const tabla = document.createElement("table");
-
-        // Encabezados
-        let header = "<tr>";
-        json.table.cols.forEach(col => header += `<th>${col.label}</th>`);
-        header += "</tr>";
-        tabla.innerHTML = header;
-
-        // Filas
-        json.table.rows.forEach(row => {
-          let fila = "<tr>";
-          row.c.forEach(cell => fila += `<td>${cell ? cell.v : ""}</td>`);
-          fila += "</tr>";
-          tabla.innerHTML += fila;
-        });
-
-        div.appendChild(tabla);
-      } catch (err) {
-        console.error("Error cargando hoja:", hoja.nombre, err);
-        document.getElementById(contenedorId).innerHTML = "<p style='color:red;'>⚠️ No se pudo cargar la hoja: " + hoja.nombre + "</p>";
-      }
-    }
-
-    // Mostrar primero
+    // Mostrar la primera por defecto
     mostrarHoja(0);
   </script>
 </body>
