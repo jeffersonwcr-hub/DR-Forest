@@ -75,11 +75,12 @@
   <div id="contenedor"></div>
 
   <script>
+    // ✅ Configuración de pestañas (nombres exactos)
     const hojas = [
       { nombre: "DEFECTOS SEMANALES", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=DEFECTOS%20SEMANALES" },
-      { nombre: "TABLA SO", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20SO" },
+      { nombre: "TABLA DE TIEMPOS", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20DE%20TIEMPOS" },
       { nombre: "TABLA NO ESCANEABLE", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20NO%20ESCANEABLE" },
-      { nombre: "TABLA DE TIEMPOS", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20DE%20TIEMPOS" }
+      { nombre: "TABLA SO", url: "https://docs.google.com/spreadsheets/d/1LVgU072wfENgd3vAW1Ze0Z9NJIWYWiZcGa9idfdVkBA/gviz/tq?tqx=out:json&sheet=TABLA%20SO" }
     ];
 
     const menu = document.getElementById("menu");
@@ -111,28 +112,35 @@
 
     // Cargar datos de Google Sheets
     async function cargarHoja(hoja, contenedorId) {
-      const res = await fetch(hoja.url);
-      const texto = await res.text();
-      const json = JSON.parse(texto.substring(47, texto.length - 2));
+      try {
+        const res = await fetch(hoja.url);
+        const texto = await res.text();
 
-      const div = document.getElementById(contenedorId);
-      const tabla = document.createElement("table");
+        // Google envuelve el JSON en una función, hay que recortar
+        const json = JSON.parse(texto.substring(47, texto.length - 2));
 
-      // Encabezados
-      let header = "<tr>";
-      json.table.cols.forEach(col => header += `<th>${col.label}</th>`);
-      header += "</tr>";
-      tabla.innerHTML = header;
+        const div = document.getElementById(contenedorId);
+        const tabla = document.createElement("table");
 
-      // Filas
-      json.table.rows.forEach(row => {
-        let fila = "<tr>";
-        row.c.forEach(cell => fila += `<td>${cell ? cell.v : ""}</td>`);
-        fila += "</tr>";
-        tabla.innerHTML += fila;
-      });
+        // Encabezados
+        let header = "<tr>";
+        json.table.cols.forEach(col => header += `<th>${col.label}</th>`);
+        header += "</tr>";
+        tabla.innerHTML = header;
 
-      div.appendChild(tabla);
+        // Filas
+        json.table.rows.forEach(row => {
+          let fila = "<tr>";
+          row.c.forEach(cell => fila += `<td>${cell ? cell.v : ""}</td>`);
+          fila += "</tr>";
+          tabla.innerHTML += fila;
+        });
+
+        div.appendChild(tabla);
+      } catch (err) {
+        console.error("Error cargando hoja:", hoja.nombre, err);
+        document.getElementById(contenedorId).innerHTML = "<p style='color:red;'>⚠️ No se pudo cargar la hoja: " + hoja.nombre + "</p>";
+      }
     }
 
     // Mostrar primero
